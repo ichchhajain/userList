@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Project</title>
+    <link rel="stylesheet" href="style.css" />
+    <script
+      src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"
+      type="text/javascript"
+    ></script>
+  </head>
+  <body>
+    <!-- Here a loader is created which  
+             loads till response comes -->
+    <section>
+      <center>
+        <div class="spinner-border" role="status" id="loading">
+          <span class="sr-only">Loading...</span>
+        </div>
+        <h1>User List</h1>
+        <input
+          type="text"
+          id="myInput"
+          onkeyup="myFunction()"
+          placeholder="Search for names.."
+          title="Type in a name"
+        />
+        <br />
+        <br />
+        <!-- table for showing data -->
+        <table id="employees"></table>
+        <!--Pagination-->
+        <br /><br />
+        <button onclick="changePage('prev')" class="btn" id="prev1">
+          Prev
+        </button>
+        <button onclick="changePage('next')" class="btn">Next</button>
+        <!---Modal--->
+        <div id="myModal" class="modal">
+          <!-- Modal content -->
+          <div class="modal-content">
+            <div class="modal-header">
+              <span class="close">&times;</span>
+              <h2>User Info</h2>
+            </div>
+            <div class="modal-body">
+              <img id="user-img" src="" alt="" />
+              <p id="first-name"></p>
+              <p id="email"></p>
+            </div>
+          </div>
+        </div>
+      </center>
+    </section>
+
+    <script>
+      let pageNo = 1;
+      let totalPage = 0;
+      // api url
+      const api_url =
+        "https://reqres.in/api/users?page=" + pageNo + "&per_page=4";
+      let apiData;
+      // Defining async function
+      async function getapi(url) {
+        // Storing response
+        const response = await fetch(url);
+        // Storing data in form of JSON
+        var data = await response.json();
+        apiData = data;
+        totalPage = data.total_pages;
+        if (response) {
+          hideloader();
+        }
+        show(data);
+      }
+      // Calling that async function
+      getapi(api_url);
+
+      // Function to hide the loader
+      function hideloader() {
+        document.getElementById("loading").style.display = "none";
+      }
+      // Function to define innerHTML for HTML table
+      function show(data) {
+        let tab = `<tr>
+              <th>Avatar</th>
+               <th>First Name</th>
+               <th>Last Name</th>
+               <th>Email</th>
+       		</tr>`;
+
+        // Loop to access all rows
+        let index = 0;
+        for (let r of data.data) {
+          tab += `<tr onclick="rowsClick(${index})">
+           <td> <img src="${r.avatar}" width="100px"></td>
+           <td>${r.first_name} </td>
+           <td>${r.last_name} </td>
+           <td>${r.email} </td>
+       </tr>`;
+          index++;
+
+          // Setting innerHTML as tab variable
+          document.getElementById("employees").innerHTML = tab;
+        }
+      }
+      // click user info in modal
+      function rowsClick(param) {
+        var modal = document.getElementById("myModal");
+        var span = document.getElementsByClassName("close")[0];
+        modal.style.display = "block";
+        // user data to show in a table
+        document.getElementById(
+          "user-img"
+        ).src = `${apiData.data[param].avatar}`;
+        document.getElementById(
+          "first-name"
+        ).innerHTML = `Name : ${apiData.data[param].first_name} ${apiData.data[param].last_name}`;
+        document.getElementById(
+          "email"
+        ).innerHTML = `Email : ${apiData.data[param].first_name} ${apiData.data[param].email}`;
+        // when the user click on cross
+        span.onclick = function () {
+          modal.style.display = "none";
+        };
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function (event) {
+          if (event.target == modal) {
+            modal.style.display = "none";
+          }
+        };
+      }
+      // when user click on prev and next button
+
+      function changePage(key) {
+        if (key == "prev" && pageNo > 1) {
+          pageNo--;
+          getapi("https://reqres.in/api/users?page=" + pageNo + "&per_page=4");
+        } else if (key == "next" && pageNo < totalPage) {
+          pageNo++;
+          getapi("https://reqres.in/api/users?page=" + pageNo + "&per_page=4");
+        }
+      }
+      function myFunction() {
+        const filter = document.querySelector("#myInput").value.toUpperCase();
+        const trs = document.querySelectorAll("#employees tr:not(.header)");
+        trs.forEach(
+          (tr) =>
+            (tr.style.display = [...tr.children].find((td) =>
+              td.innerHTML.toUpperCase().includes(filter)
+            )
+              ? ""
+              : "none")
+        );
+      }
+    </script>
+  </body>
+</html>
